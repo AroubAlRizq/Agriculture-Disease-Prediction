@@ -1,20 +1,23 @@
 :root {
-    /* Earthy Palette */
-    --bg-sand: #fdfcf8;
-    --card-bg: #ffffff;
-    --text-dark: #3e3b36;
-    --text-muted: #6b665f;
-    --olive-primary: #556b2f; /* Dark Olive Green */
-    --olive-hover: #435525;
-    --earth-accent: #c2b280; /* Sand Gold */
-    --alert-red: #a33b3b;
-    --border-color: #e0dcd3;
+    /* Dark Theme Palette */
+    --bg-dark: #121212;       /* Almost Black */
+    --card-bg: #1e1e1e;       /* Dark Gray Card */
+    --input-bg: #2d2d30;      /* Lighter Gray Inputs */
+    --text-main: #e0e0e0;     /* Off-White Text */
+    --text-muted: #a0a0a0;    /* Silver Muted Text */
+    
+    /* Agri-Tech Accents */
+    --tech-green: #00e676;    /* Neon Green */
+    --tech-green-dim: #00a856;
+    --warning-orange: #ff9100;
+    --danger-red: #ff5252;
+    --border-color: #333333;
 }
 
 body {
     font-family: 'Merriweather Sans', sans-serif;
-    background-color: var(--bg-sand);
-    color: var(--text-dark);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
     margin: 0;
     padding: 0;
     display: flex;
@@ -24,19 +27,22 @@ body {
 
 .main-wrapper {
     width: 100%;
-    max-width: 600px;
+    max-width: 650px;
     margin: 40px 20px;
 }
 
 header {
     text-align: center;
     margin-bottom: 30px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
 }
 
 header h1 {
-    color: var(--olive-primary);
+    color: var(--tech-green);
     margin: 0;
     font-size: 2.2rem;
+    letter-spacing: 1px;
 }
 
 header p {
@@ -49,17 +55,19 @@ header p {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(85, 107, 47, 0.08); /* Subtle olive shadow */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     padding: 30px;
 }
 
 h2 {
-    color: var(--olive-primary);
-    font-size: 1.2rem;
-    border-bottom: 2px solid var(--earth-accent);
-    padding-bottom: 10px;
+    color: var(--text-main);
+    font-size: 1.1rem;
+    border-left: 3px solid var(--tech-green);
+    padding-left: 10px;
     margin-top: 0;
     margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-group {
@@ -77,9 +85,9 @@ h2 {
 
 label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: bold;
 }
 
@@ -89,32 +97,41 @@ input, select {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     font-size: 1rem;
-    background-color: #faf9f6; /* Very light grey/sand */
-    box-sizing: border-box; /* Fixes padding issues */
-    transition: border-color 0.3s;
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    box-sizing: border-box;
+    transition: all 0.3s;
 }
 
 input:focus, select:focus {
     outline: none;
-    border-color: var(--olive-primary);
-    background-color: #fff;
+    border-color: var(--tech-green);
+    background-color: #3e3e42;
+}
+
+/* Fix for date picker icon color in Chrome */
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
 }
 
 button {
     width: 100%;
     padding: 15px;
-    background-color: var(--olive-primary);
+    background-color: var(--tech-green-dim);
     color: white;
     border: none;
     border-radius: 6px;
     font-size: 1.1rem;
+    font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 15px;
     transition: background-color 0.3s;
+    text-transform: uppercase;
 }
 
 button:hover {
-    background-color: var(--olive-hover);
+    background-color: var(--tech-green);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
 }
 
 .result-section {
@@ -134,32 +151,49 @@ button:hover {
 }
 
 .risk-list li {
-    background-color: #fff8f0; /* Very light orange/sand */
-    border-left: 4px solid var(--alert-red);
+    background-color: rgba(255, 82, 82, 0.1); /* Red tint */
+    border-left: 4px solid var(--danger-red);
     padding: 15px;
     margin-bottom: 10px;
     border-radius: 0 6px 6px 0;
-    color: var(--text-dark);
+    color: var(--text-main);
+}
+
+.risk-list li strong {
+    color: var(--danger-red);
 }
 
 .reason {
     display: block;
     font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .safe-status {
     text-align: center;
-    color: var(--olive-primary);
+    color: var(--tech-green);
     padding: 20px;
-    background-color: #f4f9f0;
+    background-color: rgba(0, 230, 118, 0.1);
     border-radius: 6px;
+    border: 1px solid var(--tech-green-dim);
+}
+
+.weather-badge {
+    background-color: var(--input-bg);
+    color: var(--tech-green);
+    border: 1px solid var(--tech-green-dim);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: inline-block;
+    margin-bottom: 15px;
+    font-family: monospace;
 }
 
 footer {
     text-align: center;
     font-size: 0.8rem;
-    color: #b0a89e;
+    color: #555;
     margin-top: 40px;
 }

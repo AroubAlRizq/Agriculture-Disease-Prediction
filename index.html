@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nakheel Guard | Palm Health System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <header>
+            <h1>Nakheel Guard</h1>
+            <p>Saudi Palm Disease Risk Assessment</p>
+        </header>
+
+        <div class="container">
+            <div class="input-section">
+                <h2>Environmental Inputs</h2>
+                
+                <div class="form-group">
+                    <label>Location / City</label>
+                    <input type="text" id="location" placeholder="e.g., Al Hassa, Katif, Riyadh">
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>Avg Temp (°C)</label>
+                        <input type="number" id="temp" placeholder="28">
+                    </div>
+                    <div class="form-group">
+                        <label>Humidity (%)</label>
+                        <input type="number" id="humidity" placeholder="60">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Palm Age (Years)</label>
+                    <input type="number" id="age" placeholder="5">
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>Rainfall</label>
+                        <select id="rain">
+                            <option value="none">None / Dry</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="heavy">Heavy (Spathe season)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Soil / Water Status</label>
+                        <select id="soil">
+                            <option value="good">Good Drainage</option>
+                            <option value="wet">Over-watered / Wet</option>
+                            <option value="poor">Poor / Saline / Neglected</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="calc-btn">Analyze Risk</button>
+            </div>
+
+            <div class="result-section hidden" id="result-area">
+                <h2>Susceptibility Report</h2>
+                <div id="result-display"></div>
+            </div>
+        </div>
+        
+        <footer>
+            Developed for Saudi Agriculture • 2026
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

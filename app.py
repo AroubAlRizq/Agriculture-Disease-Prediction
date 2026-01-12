@@ -1,3 +1,31 @@
+import requests
+from flask import Flask, render_template, request, jsonify
+from datetime import datetime
+
+app = Flask(__name__)
+
+# --- Configuration: Saudi Cities ---
+SAUDI_CITIES = {
+    "riyadh": {"lat": 24.7136, "lon": 46.6753},
+    "jeddah": {"lat": 21.5433, "lon": 39.1728},
+    "dammam": {"lat": 26.4207, "lon": 50.0888},
+    "al_hassa": {"lat": 25.3800, "lon": 49.5888},
+    "qatif": {"lat": 26.5652, "lon": 50.0121},
+    "taif": {"lat": 21.2854, "lon": 40.4222},
+    "madinah": {"lat": 24.5247, "lon": 39.5692},
+    "buraidah": {"lat": 26.3592, "lon": 43.9818},
+    "abha": {"lat": 18.2068, "lon": 42.5109},
+    "hail": {"lat": 27.5114, "lon": 41.7208},
+    "jazan": {"lat": 16.8894, "lon": 42.5706},
+    "najran": {"lat": 17.4917, "lon": 44.1322},
+    "tabuk": {"lat": 28.3835, "lon": 36.5662},
+    "jouf": {"lat": 29.9539, "lon": 40.1970}
+}
+
+@app.route('/')
+def index():
+    return render_template('index.html', cities=SAUDI_CITIES)
+
 @app.route('/assess', methods=['POST'])
 def assess_risk():
     data = request.json
@@ -149,3 +177,34 @@ def assess_risk():
     }
     
     return jsonify({'result': html_output, 'weather_summary': summary})
+
+def get_weather_data(lat, lon, date_str):
+    try:
+        # Added: dewpoint_2m, surface_pressure, visibility
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "current": "temperature_2m,relative_humidity_2m,rain,wind_speed_10m,dew_point_2m,surface_pressure,visibility",
+            "timezone": "auto"
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        curr = data.get('current', {})
+        
+        return {
+            "temp": curr.get('temperature_2m'),
+            "humidity": curr.get('relative_humidity_2m'),
+            "rain": curr.get('rain'),
+            "wind": curr.get('wind_speed_10m'),
+            "dew_point": curr.get('dew_point_2m'),
+            "pressure": curr.get('surface_pressure'),
+            "visibility": curr.get('visibility') # in meters
+        }
+    except Exception as e:
+        print(f"API Error: {e}")
+        return None
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)

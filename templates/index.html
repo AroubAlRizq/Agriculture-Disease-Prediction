@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nakheel Guard | Instant Assessment</title>
+    <title>Nakheel Guard | Pro</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
@@ -12,13 +12,12 @@
     <div class="main-wrapper">
         <header>
             <h1>Nakheel Guard</h1>
-            <p>Regional Disease Susceptibility Monitor</p>
+            <p>Advanced Biosecurity & Weather Analysis</p>
         </header>
 
         <div class="container">
             <div class="input-section">
-                <h2>Select Region</h2>
-                
+                <h2>Region Selection</h2>
                 <div class="form-group">
                     <select id="city">
                         {% for key, val in cities.items() %}
@@ -26,22 +25,45 @@
                         {% endfor %}
                     </select>
                 </div>
-
-                <button id="calc-btn">Scan Region Risks</button>
+                <button id="calc-btn">Analyze Satellite Data</button>
             </div>
 
             <div class="result-section hidden" id="result-area">
-                <div class="weather-badge" id="weather-summary"></div>
-                <h2>Live Risk Report</h2>
-                <div id="result-display"></div>
-                <div class="disclaimer">
-                    *Analysis assumes standard soil conditions and avg palm age (5 yrs).
+                
+                <div class="weather-grid" id="weather-dashboard">
+                    <div class="w-card">
+                        <span class="w-label">Temp</span>
+                        <span class="w-val" id="w-temp">--</span>
+                    </div>
+                    <div class="w-card">
+                        <span class="w-label">Humidity</span>
+                        <span class="w-val" id="w-hum">--</span>
+                    </div>
+                    <div class="w-card">
+                        <span class="w-label">Dew Point</span>
+                        <span class="w-val" id="w-dew">--</span>
+                    </div>
+                    <div class="w-card">
+                        <span class="w-label">Wind</span>
+                        <span class="w-val" id="w-wind">--</span>
+                    </div>
+                    <div class="w-card">
+                        <span class="w-label">Visibility</span>
+                        <span class="w-val" id="w-vis">--</span>
+                    </div>
+                    <div class="w-card">
+                        <span class="w-label">Pressure</span>
+                        <span class="w-val" id="w-pres">--</span>
+                    </div>
                 </div>
+
+                <h2>Biological Risk Assessment</h2>
+                <div id="result-display"></div>
             </div>
         </div>
         
         <footer>
-            Live Data Source: Open-Meteo Satellite
+            Live Metrics: Open-Meteo • Logic: NCM Guidelines
         </footer>
     </div>
 
@@ -49,16 +71,13 @@
         document.getElementById('calc-btn').addEventListener('click', async function() {
             const btn = this;
             const resultArea = document.getElementById('result-area');
-            const resultDisplay = document.getElementById('result-display');
-            const weatherDisplay = document.getElementById('weather-summary');
             const city = document.getElementById('city').value;
 
-            btn.innerText = "Scanning Satellite Data...";
+            btn.innerText = "Processing Telemetry...";
             btn.disabled = true;
             resultArea.classList.add('hidden');
 
             try {
-                // We only send the city now. The backend handles the date/defaults.
                 const response = await fetch('/assess', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -69,15 +88,23 @@
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    resultDisplay.innerHTML = data.result;
-                    weatherDisplay.innerText = data.weather_summary;
+                    // Update Dashboard
+                    document.getElementById('w-temp').innerText = data.weather_summary.temp + "°C";
+                    document.getElementById('w-hum').innerText = data.weather_summary.rh + "%";
+                    document.getElementById('w-dew').innerText = data.weather_summary.dew + "°C";
+                    document.getElementById('w-wind').innerText = data.weather_summary.wind + " km/h";
+                    document.getElementById('w-vis').innerText = data.weather_summary.vis + " km";
+                    document.getElementById('w-pres').innerText = data.weather_summary.pressure + " hPa";
+
+                    // Show Risks
+                    document.getElementById('result-display').innerHTML = data.result;
                     resultArea.classList.remove('hidden');
                 }
             } catch (err) {
                 console.error(err);
-                alert("Connection Failed. Check internet or server.");
+                alert("Connection Failed.");
             } finally {
-                btn.innerText = "Scan Region Risks";
+                btn.innerText = "Analyze Satellite Data";
                 btn.disabled = false;
             }
         });

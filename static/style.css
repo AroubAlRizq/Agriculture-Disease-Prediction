@@ -197,3 +197,35 @@ footer {
     color: #555;
     margin-top: 40px;
 }
+
+/* Add this to the bottom of style.css */
+
+.weather-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns */
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.w-card {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.w-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.w-val {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--tech-green);
+}

@@ -198,34 +198,64 @@ footer {
     margin-top: 40px;
 }
 
-/* Add this to the bottom of style.css */
-
-.weather-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 columns */
-    gap: 10px;
-    margin-bottom: 25px;
+/* --- New Risk List Styling --- */
+.risk-list {
+    list-style: none;
+    padding: 0;
 }
 
-.w-card {
-    background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    padding: 10px;
-    border-radius: 8px;
-    text-align: center;
+.risk-list li {
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    background-color: var(--input-bg); /* Dark gray background */
+    border-left: 5px solid; /* The colored bar on the left */
+    display: flex;
+    flex-direction: column;
 }
 
-.w-label {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
+.risk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 5px;
 }
 
-.w-val {
-    display: block;
-    font-size: 1.1rem;
+.badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
     font-weight: bold;
-    color: var(--tech-green);
+    color: #fff;
+}
+
+/* 1. Low Risk (Green) */
+.risk-low {
+    border-left-color: #00e676; /* Neon Green */
+}
+.risk-low .badge {
+    background-color: rgba(0, 230, 118, 0.2);
+    color: #00e676;
+    border: 1px solid #00e676;
+}
+
+/* 2. Moderate Risk (Orange) */
+.risk-mod {
+    border-left-color: #ff9100; /* Orange */
+}
+.risk-mod .badge {
+    background-color: rgba(255, 145, 0, 0.2);
+    color: #ff9100;
+    border: 1px solid #ff9100;
+}
+
+/* 3. High Risk (Red) */
+.risk-high {
+    border-left-color: #ff5252; /* Red */
+}
+.risk-high .badge {
+    background-color: rgba(255, 82, 82, 0.2);
+    color: #ff5252;
+    border: 1px solid #ff5252;
 }

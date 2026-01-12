@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nakheel Guard | Palm Health System</title>
+    <title>Nakheel Guard | Instant Assessment</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
@@ -12,67 +12,75 @@
     <div class="main-wrapper">
         <header>
             <h1>Nakheel Guard</h1>
-            <p>Saudi Palm Disease Risk Assessment</p>
+            <p>Regional Disease Susceptibility Monitor</p>
         </header>
 
         <div class="container">
             <div class="input-section">
-                <h2>Environmental Inputs</h2>
+                <h2>Select Region</h2>
                 
                 <div class="form-group">
-                    <label>Location / City</label>
-                    <input type="text" id="location" placeholder="e.g., Al Hassa, Katif, Riyadh">
+                    <select id="city">
+                        {% for key, val in cities.items() %}
+                            <option value="{{ key }}">{{ key.replace('_', ' ').title() }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-                <div class="row">
-                    <div class="form-group">
-                        <label>Avg Temp (°C)</label>
-                        <input type="number" id="temp" placeholder="28">
-                    </div>
-                    <div class="form-group">
-                        <label>Humidity (%)</label>
-                        <input type="number" id="humidity" placeholder="60">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Palm Age (Years)</label>
-                    <input type="number" id="age" placeholder="5">
-                </div>
-
-                <div class="row">
-                    <div class="form-group">
-                        <label>Rainfall</label>
-                        <select id="rain">
-                            <option value="none">None / Dry</option>
-                            <option value="moderate">Moderate</option>
-                            <option value="heavy">Heavy (Spathe season)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Soil / Water Status</label>
-                        <select id="soil">
-                            <option value="good">Good Drainage</option>
-                            <option value="wet">Over-watered / Wet</option>
-                            <option value="poor">Poor / Saline / Neglected</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button id="calc-btn">Analyze Risk</button>
+                <button id="calc-btn">Scan Region Risks</button>
             </div>
 
             <div class="result-section hidden" id="result-area">
-                <h2>Susceptibility Report</h2>
+                <div class="weather-badge" id="weather-summary"></div>
+                <h2>Live Risk Report</h2>
                 <div id="result-display"></div>
+                <div class="disclaimer">
+                    *Analysis assumes standard soil conditions and avg palm age (5 yrs).
+                </div>
             </div>
         </div>
         
         <footer>
-            Developed for Saudi Agriculture • 2026
+            Live Data Source: Open-Meteo Satellite
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.getElementById('calc-btn').addEventListener('click', async function() {
+            const btn = this;
+            const resultArea = document.getElementById('result-area');
+            const resultDisplay = document.getElementById('result-display');
+            const weatherDisplay = document.getElementById('weather-summary');
+            const city = document.getElementById('city').value;
+
+            btn.innerText = "Scanning Satellite Data...";
+            btn.disabled = true;
+            resultArea.classList.add('hidden');
+
+            try {
+                // We only send the city now. The backend handles the date/defaults.
+                const response = await fetch('/assess', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ city: city })
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    resultDisplay.innerHTML = data.result;
+                    weatherDisplay.innerText = data.weather_summary;
+                    resultArea.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Connection Failed. Check internet or server.");
+            } finally {
+                btn.innerText = "Scan Region Risks";
+                btn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>

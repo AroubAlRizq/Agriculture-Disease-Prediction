@@ -2,26 +2,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcBtn = document.getElementById('calc-btn');
     const resultArea = document.getElementById('result-area');
     const citySelect = document.getElementById('city');
-
-    // Dashboard Elements
-    const valTemp = document.getElementById('w-temp');
-    const valHum = document.getElementById('w-hum');
-    const valDew = document.getElementById('w-dew');
-    const valWind = document.getElementById('w-wind');
-    const valVis = document.getElementById('w-vis');
-    const valPres = document.getElementById('w-pres');
-    
     const resultDisplay = document.getElementById('result-display');
 
-    calcBtn.addEventListener('click', async function() {
-        // UI: Set Loading State
-        calcBtn.innerText = "Processing Telemetry...";
-        calcBtn.disabled = true;
-        resultArea.classList.add('hidden');
+    // Dashboard Elements
+    const wTemp = document.getElementById('w-temp');
+    const wHum = document.getElementById('w-hum');
+    const wDew = document.getElementById('w-dew');
+    const wWind = document.getElementById('w-wind');
+    const wVis = document.getElementById('w-vis');
+    const wPres = document.getElementById('w-pres');
 
-        const payload = {
-            city: citySelect.value
-        };
+    calcBtn.addEventListener('click', async function() {
+        // 1. Force Reset UI
+        calcBtn.innerText = "Connecting to Satellite...";
+        calcBtn.disabled = true;
+        resultArea.classList.add('hidden'); // Hide previous results immediately
+        resultDisplay.innerHTML = "";       // Clear previous text
+
+        const payload = { city: citySelect.value };
 
         try {
             const response = await fetch('/assess', {
@@ -33,32 +31,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.error) {
-                alert("System Error: " + data.error);
+                alert("Alert: " + data.error);
             } else {
-                // 1. Update the Weather Dashboard Grid
-                // We use the data from the 'weather_summary' dictionary sent by Python
-                valTemp.innerText = data.weather_summary.temp + "°C";
-                valHum.innerText = data.weather_summary.rh + "%";
-                valDew.innerText = data.weather_summary.dew + "°C";
-                valWind.innerText = data.weather_summary.wind + " km/h";
-                valVis.innerText = data.weather_summary.vis + " km";
-                valPres.innerText = data.weather_summary.pressure + " hPa";
+                // 2. Safe Injection (Check if elements exist first)
+                if(wTemp) wTemp.innerText = data.weather_summary.temp + "°C";
+                if(wHum) wHum.innerText = data.weather_summary.rh + "%";
+                if(wDew) wDew.innerText = data.weather_summary.dew + "°C";
+                if(wWind) wWind.innerText = data.weather_summary.wind + " km/h";
+                if(wVis) wVis.innerText = data.weather_summary.vis + " km";
+                if(wPres) wPres.innerText = data.weather_summary.pressure + " hPa";
 
-                // 2. Inject the Risk Report HTML
+                // 3. Show Results
                 resultDisplay.innerHTML = data.result;
-
-                // 3. Reveal the Section
                 resultArea.classList.remove('hidden');
                 
-                // Smooth scroll to results
+                // Scroll
                 resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
         } catch (error) {
             console.error("Fetch error:", error);
-            alert("Connection Failed. Please check your internet or server status.");
+            alert("Connection Failed. Please check internet connection.");
         } finally {
-            // UI: Reset Button
+            // 4. ALWAYS Re-enable button
             calcBtn.innerText = "Analyze Satellite Data";
             calcBtn.disabled = false;
         }

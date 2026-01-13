@@ -34,25 +34,30 @@ def assess_risk():
         
         # Defaults
         today = datetime.now()
-        date_str = today.strftime("%Y-%m-%d")
         month = today.month
         
         if city_key not in SAUDI_CITIES: return jsonify({'error': "Invalid City"})
         
         coords = SAUDI_CITIES[city_key]
-        weather = get_weather_data(coords['lat'], coords['lon'], date_str)
         
-        if not weather: return jsonify({'error': "Weather API Error"})
+        # --- FAILSAFE WEATHER FETCHING ---
+        weather = get_weather_primary(coords['lat'], coords['lon'])
+        
+        if not weather:
+            print(f"Primary API failed for {city_key}. Switching to Backup...")
+            weather = get_weather_backup(coords['lat'], coords['lon'])
+            
+        if not weather: 
+            return jsonify({'error': "Both Primary and Backup Weather Services are unavailable."})
 
-        # --- SAFETY EXTRACTION (Prevents Crashes) ---
-        # We use 'or' to provide a fallback if the API returns None
+        # --- SAFETY EXTRACTION ---
         temp = weather.get('temp') or 25.0
         humidity = weather.get('humidity') or 40.0
         rain = weather.get('rain') or 0.0
         wind = weather.get('wind') or 5.0
         dew_point = weather.get('dew_point') or 10.0
         pressure = weather.get('pressure') or 1013.0
-        vis = weather.get('visibility') or 10000.0 # Default to 10km (clear)
+        vis = weather.get('visibility') or 10000.0 
 
         # Derived Logic
         dew_spread = temp - dew_point
@@ -64,7 +69,6 @@ def assess_risk():
         # --- 1. Graphiola Leaf Spot ---
         g_level = "Low"
         g_reason = f"Humidity ({humidity}%) is insufficient."
-        
         if dew_forming or rain > 0.5:
             if 20 <= temp <= 35:
                 g_level = "Critical"
@@ -75,13 +79,11 @@ def assess_risk():
         elif humidity > 75:
             g_level = "High"
             g_reason = "High atmospheric humidity favors growth."
-        
         findings.append({"name": "Graphiola Leaf Spot", "level": g_level, "reason": g_reason})
 
         # --- 2. White Scale ---
         ws_level = "Low"
         ws_reason = "Conditions stable."
-        
         if 28 <= temp <= 36:
             ws_level = "High"
             ws_reason = f"Temp ({temp}°C) is optimal for breeding."
@@ -91,13 +93,11 @@ def assess_risk():
         elif temp > 38:
             ws_level = "Low"
             ws_reason = "High heat causes pest mortality."
-
         findings.append({"name": "White Scale", "level": ws_level, "reason": ws_reason})
 
         # --- 3. Red Palm Weevil ---
         rpw_level = "Low"
         rpw_reason = "Dormant."
-        
         if 18 <= temp <= 40:
             rpw_level = "High"
             rpw_reason = "Active flight temperature range."
@@ -107,13 +107,11 @@ def assess_risk():
             if is_dusty:
                 rpw_level = "Low"
                 rpw_reason = "Grounded by low visibility/dust."
-        
         findings.append({"name": "Red Palm Weevil", "level": rpw_level, "reason": rpw_reason})
 
         # --- 4. Khamedj Disease ---
         k_level = "Low"
         is_season = month in [2, 3, 4]
-        
         if is_season:
             if pressure < 1008:
                 k_level = "High"
@@ -127,7 +125,6 @@ def assess_risk():
         else:
             k_level = "Low"
             k_reason = "Not Spathe emergence season (Spring)."
-
         findings.append({"name": "Khamedj Disease", "level": k_level, "reason": k_reason})
 
         # --- 5. Al Wijam ---
@@ -140,7 +137,6 @@ def assess_risk():
             else:
                 aw_level = "Moderate"
                 aw_reason = "Endemic Zone (Vector dormant)."
-
         findings.append({"name": "Al Wijam", "level": aw_level, "reason": aw_reason})
 
         # --- HTML Generator ---
@@ -169,24 +165,26 @@ def assess_risk():
         return jsonify({'result': html_output, 'weather_summary': summary})
 
     except Exception as e:
-        # If any crash happens, log it and return error to frontend
         print(f"SERVER ERROR: {e}")
-        return jsonify({'error': f"Server Calculation Error: {str(e)}"})
+        return jsonify({'error': f"Server Error: {str(e)}"})
 
-def get_weather_data(lat, lon, date_str):
+
+# --- API 1: OPEN-METEO (Primary) ---
+def get_weather_primary(lat, lon):
     try:
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
-            "latitude": lat,
-            "longitude": lon,
+            "latitude": lat, "longitude": lon,
             "current": "temperature_2m,relative_humidity_2m,rain,wind_speed_10m,dew_point_2m,surface_pressure,visibility",
             "timezone": "auto"
         }
-        
-        response = requests.get(url, params=params, timeout=5) # 5s timeout
+        response = requests.get(url, params=params, timeout=3) # Short timeout
         data = response.json()
         curr = data.get('current', {})
         
+        # Verify we actually got data, otherwise return None to trigger backup
+        if not curr.get('temperature_2m'): return None
+
         return {
             "temp": curr.get('temperature_2m'),
             "humidity": curr.get('relative_humidity_2m'),
@@ -197,7 +195,44 @@ def get_weather_data(lat, lon, date_str):
             "visibility": curr.get('visibility')
         }
     except Exception as e:
-        print(f"API Error: {e}")
+        print(f"Primary API Error: {e}")
+        return None
+
+
+# --- API 2: MET.NO / YR (Backup) ---
+def get_weather_backup(lat, lon):
+    try:
+        # Met.no requires a User-Agent header
+        url = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
+        headers = {"User-Agent": "NakheelGuard/1.0 github.com/AroubAlRizq"}
+        params = {"lat": lat, "lon": lon}
+        
+        response = requests.get(url, headers=headers, params=params, timeout=5)
+        data = response.json()
+        
+        # Parse the complex Met.no structure
+        timeseries = data['properties']['timeseries'][0]
+        curr = timeseries['data']['instant']['details']
+        
+        # Try to find rain in the 'next 1 hour' block
+        rain_val = 0.0
+        try:
+            rain_val = timeseries['data']['next_1_hours']['details']['precipitation_amount']
+        except:
+            rain_val = 0.0
+
+        return {
+            "temp": curr.get('air_temperature'),
+            "humidity": curr.get('relative_humidity'),
+            "rain": rain_val,
+            "wind": curr.get('wind_speed'),
+            "dew_point": curr.get('dew_point_temperature'),
+            "pressure": curr.get('air_pressure_at_sea_level'),
+            # Met.no compact doesn't usually send visibility, default to 10km (Clear)
+            "visibility": 10000.0 
+        }
+    except Exception as e:
+        print(f"Backup API Error: {e}")
         return None
 
 if __name__ == '__main__':
